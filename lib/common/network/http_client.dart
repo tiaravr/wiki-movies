@@ -1,9 +1,21 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:wiki_movies/common/exception/exception.dart';
 
 Dio createDio() {
-  final dio = Dio(BaseOptions(baseUrl: dotenv.get('BASE_URL')));
+  final dio = Dio(BaseOptions(baseUrl: dotenv.get('ENDPOINT')));
+  dio.interceptors.add(
+    LogInterceptor(
+      request: false,
+      requestBody: false,
+      requestUrl: false,
+      requestHeader: false,
+      responseBody: true,
+    ),
+  );
   return dio;
 }
 
@@ -12,25 +24,29 @@ class HttpServices {
 
   static final _dio = createDio();
 
-  static Future<Response> post({
-    required String url,
-    Map<String, dynamic>? body,
-  }) async {
-    Response response = await _dio.post(url, data: body);
-    debugPrint(response.data.toString());
-    return response;
-  }
-
   static Future<Response> get({
-    required String url,
     Map<String, dynamic>? queryParam,
     String? path,
   }) async {
-    Response response = await _dio.get(
-      '$url${path != null ? '/$path' : ''}',
-      queryParameters: queryParam,
-    );
-    debugPrint(response.data.toString());
-    return response;
+    try {
+      Response response = await _dio.get(
+        path != null ? '/$path' : '',
+        queryParameters: queryParam,
+      );
+      debugPrint(response.data.toString());
+      return response;
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionError) {
+        throw TimeoutException('Connection Error');
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        throw TimeoutException('Connection TimeOut');
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw TimeoutException('Receive TimeOut');
+      } else if (e.type == DioExceptionType.transformTimeout) {
+        throw TimeoutException('Transform TimeOut');
+      } else {
+        throw UnknownException(e.message.toString());
+      }
+    }
   }
 }
