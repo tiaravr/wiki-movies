@@ -1,23 +1,27 @@
 import 'package:wiki_movies/features/movies/domain/entities/response/movie.dart';
 
 class MovieList {
-  int? page;
-  List<Movie>? results;
-  int? totalPages;
-  int? totalResults;
+  final int? page;
+  final List<Movie>? results;
+  final int? totalPages;
+  final int? totalResults;
 
-  MovieList({this.page, this.results, this.totalPages, this.totalResults});
+  const MovieList({
+    this.page,
+    this.results,
+    this.totalPages,
+    this.totalResults,
+  });
 
-  MovieList.fromJson(Map<String, dynamic> json) {
-    page = json['page'];
-    if (json['results'] != null) {
-      results = <Movie>[];
-      json['results'].forEach((v) {
-        results!.add(Movie.fromJson(v));
-      });
-    }
-    totalPages = json['total_pages'];
-    totalResults = json['total_results'];
+  factory MovieList.fromJson(Map<String, dynamic> json) {
+    return MovieList(
+      page: json['page'],
+      results: json['results'] == null
+          ? null
+          : (json['results'] as List).map((e) => Movie.fromJson(e)).toList(),
+      totalPages: json['total_pages'],
+      totalResults: json['total_results'],
+    );
   }
 
   Map<String, dynamic> toJson() {
