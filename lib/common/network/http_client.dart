@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:injectable/injectable.dart';
 import 'package:wiki_movies/common/exception/exception.dart';
 
 Dio createDio() {
@@ -19,15 +20,13 @@ Dio createDio() {
   return dio;
 }
 
+@LazySingleton()
 class HttpServices {
-  const HttpServices._();
+  const HttpServices(this._dio);
 
-  static final _dio = createDio();
+  final Dio _dio;
 
-  static Future<Response> get({
-    Map<String, dynamic>? queryParam,
-    String? path,
-  }) async {
+  Future<Response> get({Map<String, dynamic>? queryParam, String? path}) async {
     try {
       Response response = await _dio.get(
         path != null ? '/$path' : '',
